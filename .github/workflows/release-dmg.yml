@@ -8,7 +8,7 @@
 #   - 发布 job 用 `!cancelled()` 兜底：即使某个分包失败也发布，只附成功 DMG；
 #     两个都失败时跳过发布（hashFiles 守卫）。
 # 版本号从 tag 注入（v0.2.0 → DMG 内 0.2.0），与 Release 命名一致；
-# 手动触发可显式指定版本号。
+# 手动触发可显式指定版本号；勾选 publish_release 后手动运行也会发布（tag 名 v<version>）。
 name: Release DMG
 
 on:
@@ -22,6 +22,11 @@ on:
         required: false
         default: ''
         type: string
+      publish_release:
+        description: 手动运行时也发布 GitHub Release（需填写 version，tag 名 v<version>）
+        required: false
+        default: false
+        type: boolean
 
 # 同一 ref（tag/分支）上的重复运行自动取消旧的，避免并发抢发 Release
 concurrency:
@@ -88,8 +93,8 @@ jobs:
   publish-release:
     name: Publish GitHub Release
     needs: build
-    # 即使某个分包失败也发布；手动触发（无 tag）时跳过发布
-    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/') }}
+    # tag 推送必然发布；手动触发仅当勾选 publish_release 时发布
+    if: ${{ !cancelled() && (startsWith(github.ref, 'refs/tags/') || inputs.publish_release) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -105,11 +110,22 @@ jobs:
       - name: List artifacts
         run: ls -la dist || true
 
+      - name: Require version for manual release
+        # 手动发布必须带 version，否则无法确定 tag 名
+        if: ${{ inputs.publish_release }}
+        run: |
+          if [ -z "${{ inputs.version }}" ]; then
+            echo "::error::手动发布必须填写 version 输入（将作为 tag 名 v<version>）"
+            exit 1
+          fi
+
       - name: Create / update release
         # 两个 DMG 都失败时不发空 Release
         if: hashFiles('dist/*.dmg') != ''
         uses: softprops/action-gh-release@v2
         with:
+          # tag 推送时留空 → 自动用 GITHUB_REF；手动发布时用 v<version>（tag 不存在会自动创建）
+          tag_name: ${{ inputs.publish_release && format('v{0}', inputs.version) }}
           files: |
             dist/*.dmg
             dist/SHA256SUMS.txt

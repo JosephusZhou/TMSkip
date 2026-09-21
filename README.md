@@ -121,7 +121,8 @@ Release：
   时不发空 Release
 - **版本从 tag 注入**：`v0.2.0` 产的 DMG 内版本即 0.2.0，与 Release 命名一致
 - Release 附带 `SHA256SUMS.txt` 校验和文件，下载后可自验完整性
-- 工作流也支持手动触发（Actions → 手动运行），仅构建不发布，用于调试
+- 工作流也支持手动触发（Actions → 手动运行）：不勾选 `publish_release` 时仅构建
+  用于调试；勾选后以 `version` 输入为 tag 名（`v<version>`）发布 Release
 
 CI 运行器无 Developer ID 证书，按工程默认 ad-hoc 签名打包（接收方首次打开需
 右键 → 打开）。如需自动签名 + 公证，可在仓库 secrets 中配置证书后扩展该工作流。
