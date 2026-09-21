@@ -1,0 +1,34 @@
+# macOS
+.DS_Store
+*.swp
+*~
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+DerivedData/
+build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.build/*
+!/.build/xcuserdata
+.swiftpm/
+Package.resolved
+
+# App 运行时生成
+*.log
+# 本机个人签名配置（含证书身份，勿提交）；备份副本同样可能含身份
+Config/Local.xcconfig
+Config/*.backup
+
+# IDE
+.idea/
+
+# 发布产物
+dist/

@@ -1,0 +1,12 @@
+// 复制本文件为同目录下的 Local.xcconfig（已被 .gitignore 忽略），并填入你自己的信息。
+// 查看可用证书：security find-identity -v -p codesigning
+//
+// 为什么需要它：TCC 授权绑定「指定需求」(DR)。ad-hoc 签名每次构建 cdhash 都变，
+// 系统每次都当新 App 要求重新授权；固定的开发者证书让 DR 稳定，授权一次即可。
+// Debug 与 Release 用同一张证书时，两边的授权也是共用的一份。
+
+CODE_SIGN_STYLE = Manual
+// 例：
+// CODE_SIGN_IDENTITY = Apple Development: your.name@example.com (TEAMID)
+CODE_SIGN_IDENTITY =
+DEVELOPMENT_TEAM =

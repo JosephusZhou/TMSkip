@@ -1,0 +1,443 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+		139C10EDC4E24523977817C1 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		54B93201B2EF4226A39E35B8 /* DomainModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models/DomainModels.swift"; sourceTree = "<group>"; };
+		FF91F1A2EF324853AA7ED806 /* RulePackage+Bundled.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models/RulePackage+Bundled.swift"; sourceTree = "<group>"; };
+		48049DBC54974A978F3FC2AB /* DirectorySizeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/DirectorySizeService.swift"; sourceTree = "<group>"; };
+		696061FA0D0844D6A886C3FD /* FullDiskAccessService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/FullDiskAccessService.swift"; sourceTree = "<group>"; };
+		FFFB2C56E7274125B66FA207 /* IgnoreStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/IgnoreStore.swift"; sourceTree = "<group>"; };
+		6DBB2106B62D463BBBC5A524 /* ScanEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/ScanEngine.swift"; sourceTree = "<group>"; };
+		CE9E80EB159D430EA87C627F /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/SettingsStore.swift"; sourceTree = "<group>"; };
+		B690ADD4732A45F1B69C58AB /* TimeMachineExclusionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/TimeMachineExclusionService.swift"; sourceTree = "<group>"; };
+		5FEC82672427474290C2499B /* RulePackageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/RulePackageService.swift"; sourceTree = "<group>"; };
+		AA000000000000000000A001 /* AutoScanCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/AutoScanCoordinator.swift"; sourceTree = "<group>"; };
+		AA000000000000000000B001 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/NotificationService.swift"; sourceTree = "<group>"; };
+		AA000000000000000000C001 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/LoginItemService.swift"; sourceTree = "<group>"; };
+		AA000000000000000000D001 /* WindowRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/WindowRouter.swift"; sourceTree = "<group>"; };
+		AA000000000000000000E005 /* ScanLogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/ScanLogService.swift"; sourceTree = "<group>"; };
+		1B6975836ECF45AEBBF2B6EF /* TMSkipApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TMSkipApp.swift; sourceTree = "<group>"; };
+		CA2B502EB0984252982B351E /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/AboutView.swift"; sourceTree = "<group>"; };
+		45FF4BD73F084B8486C87E67 /* IgnoreListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/IgnoreList/IgnoreListView.swift"; sourceTree = "<group>"; };
+		00C6FD2AC77B407AA2440E4D /* ManualScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/ManualScan/ManualScanView.swift"; sourceTree = "<group>"; };
+		FCA4E909062143A0BEEFD267 /* MenuBarViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/MenuBar/MenuBarViews.swift"; sourceTree = "<group>"; };
+		DCA3E900C9E646CE8AAC5998 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Onboarding/OnboardingView.swift"; sourceTree = "<group>"; };
+		5E225BA26C7440D786E4D43E /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/RootView.swift"; sourceTree = "<group>"; };
+		403931C621B543009A2C7B72 /* ScanSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Settings/ScanSettingsView.swift"; sourceTree = "<group>"; };
+		AA000000000000000000F001 /* Checkbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Shared/Checkbox.swift"; sourceTree = "<group>"; };
+		A11A00000000000000000010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
+		A11A00000000000000000012 /* TMSkip.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TMSkip.entitlements; sourceTree = "<group>"; };
+		A11A00000000000000000013 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Signing.xcconfig; sourceTree = SOURCE_ROOT; };
+		A11A00000000000000000006 /* TMSkip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TMSkip.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10C0DE00000000000000001 /* TMSkipTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TMSkipTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10C0DE000000000000000B1 /* ScanEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanEngineTests.swift; sourceTree = "<group>"; };
+		B10C0DE000000000000000B2 /* RuleParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleParsingTests.swift; sourceTree = "<group>"; };
+		B10C0DE000000000000000B3 /* SettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTests.swift; sourceTree = "<group>"; };
+		B10C0DE000000000000000B4 /* ExclusionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExclusionServiceTests.swift; sourceTree = "<group>"; };
+		BB000000000000000000E001 /* AutoScanCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoScanCoordinatorTests.swift; sourceTree = "<group>"; };
+		BB000000000000000000E003 /* SettingsDecodingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsDecodingTests.swift; sourceTree = "<group>"; };
+		BB000000000000000000E005 /* ScanLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanLogTests.swift; sourceTree = "<group>"; };
+		D5692EE39D144D79A0F94FF6 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139C10EDC4E24523977817C1 /* AppModel.swift */; };
+		80564597743B4DEC82C6DE81 /* DomainModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B93201B2EF4226A39E35B8 /* DomainModels.swift */; };
+		5BF352C21DF8439AA58AC933 /* RulePackage+Bundled.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF91F1A2EF324853AA7ED806 /* RulePackage+Bundled.swift */; };
+		BBE95FE9749B4D8CB0992ED0 /* DirectorySizeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48049DBC54974A978F3FC2AB /* DirectorySizeService.swift */; };
+		A6D12AB5AF5D490AADCD4E9F /* FullDiskAccessService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 696061FA0D0844D6A886C3FD /* FullDiskAccessService.swift */; };
+		1C593158D96A4EE195DCD908 /* IgnoreStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFFB2C56E7274125B66FA207 /* IgnoreStore.swift */; };
+		815EAFF6E92A444C99A33679 /* ScanEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DBB2106B62D463BBBC5A524 /* ScanEngine.swift */; };
+		299AEF29579A45C0B51BD56C /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE9E80EB159D430EA87C627F /* SettingsStore.swift */; };
+		50869F40A7164BBB955AAC84 /* TimeMachineExclusionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B690ADD4732A45F1B69C58AB /* TimeMachineExclusionService.swift */; };
+		F7E9D8734B6447D8A76A050A /* RulePackageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FEC82672427474290C2499B /* RulePackageService.swift */; };
+		AA000000000000000000A002 /* AutoScanCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000A001 /* AutoScanCoordinator.swift */; };
+		AA000000000000000000B002 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000B001 /* NotificationService.swift */; };
+		AA000000000000000000C002 /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000C001 /* LoginItemService.swift */; };
+		AA000000000000000000D002 /* WindowRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000D001 /* WindowRouter.swift */; };
+		AA000000000000000000E006 /* ScanLogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000E005 /* ScanLogService.swift */; };
+		213534B5AA4846D186EAAF06 /* TMSkipApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B6975836ECF45AEBBF2B6EF /* TMSkipApp.swift */; };
+		F98C0025CD764BE9ADC58D98 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2B502EB0984252982B351E /* AboutView.swift */; };
+		4112B24AFBEC406FBFC3345D /* IgnoreListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45FF4BD73F084B8486C87E67 /* IgnoreListView.swift */; };
+		DD44CDD93BB648A38AF49083 /* ManualScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C6FD2AC77B407AA2440E4D /* ManualScanView.swift */; };
+		818FB096BF7843128DC787C8 /* MenuBarViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCA4E909062143A0BEEFD267 /* MenuBarViews.swift */; };
+		5AFA7C5E700C4D83A764EFE7 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCA3E900C9E646CE8AAC5998 /* OnboardingView.swift */; };
+		7F2A5C65B06643DC9023C416 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E225BA26C7440D786E4D43E /* RootView.swift */; };
+		BB8E28ADCEC94EC1AE2EF45F /* ScanSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 403931C621B543009A2C7B72 /* ScanSettingsView.swift */; };
+		AA000000000000000000F002 /* Checkbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000F001 /* Checkbox.swift */; };
+		A11A00000000000000000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A11A00000000000000000010 /* Assets.xcassets */; };
+		B10C0DE000000000000000C1 /* ScanEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE000000000000000B1 /* ScanEngineTests.swift */; };
+		B10C0DE000000000000000C2 /* RuleParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE000000000000000B2 /* RuleParsingTests.swift */; };
+		B10C0DE000000000000000C3 /* SettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE000000000000000B3 /* SettingsTests.swift */; };
+		B10C0DE000000000000000C4 /* ExclusionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE000000000000000B4 /* ExclusionServiceTests.swift */; };
+		BB000000000000000000E002 /* AutoScanCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000E001 /* AutoScanCoordinatorTests.swift */; };
+		BB000000000000000000E004 /* SettingsDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000E003 /* SettingsDecodingTests.swift */; };
+		BB000000000000000000E006 /* ScanLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000E005 /* ScanLogTests.swift */; };
+		B10C0DE00000000000000002 /* TMSkipTests */ = {
+			isa = PBXGroup;
+			children = (
+				B10C0DE000000000000000B1 /* ScanEngineTests.swift */,
+				B10C0DE000000000000000B2 /* RuleParsingTests.swift */,
+				B10C0DE000000000000000B3 /* SettingsTests.swift */,
+				B10C0DE000000000000000B4 /* ExclusionServiceTests.swift */,
+				BB000000000000000000E001 /* AutoScanCoordinatorTests.swift */,
+				BB000000000000000000E003 /* SettingsDecodingTests.swift */,
+				BB000000000000000000E005 /* ScanLogTests.swift */,
+			);
+			path = TMSkipTests;
+			sourceTree = "<group>";
+		};
+		A11A0000000000000000000F /* TMSkip */ = {
+			isa = PBXGroup;
+			children = (
+				139C10EDC4E24523977817C1 /* AppModel.swift */,
+				54B93201B2EF4226A39E35B8 /* DomainModels.swift */,
+				FF91F1A2EF324853AA7ED806 /* RulePackage+Bundled.swift */,
+				48049DBC54974A978F3FC2AB /* DirectorySizeService.swift */,
+				696061FA0D0844D6A886C3FD /* FullDiskAccessService.swift */,
+				FFFB2C56E7274125B66FA207 /* IgnoreStore.swift */,
+				6DBB2106B62D463BBBC5A524 /* ScanEngine.swift */,
+				CE9E80EB159D430EA87C627F /* SettingsStore.swift */,
+				B690ADD4732A45F1B69C58AB /* TimeMachineExclusionService.swift */,
+				1B6975836ECF45AEBBF2B6EF /* TMSkipApp.swift */,
+				CA2B502EB0984252982B351E /* AboutView.swift */,
+				45FF4BD73F084B8486C87E67 /* IgnoreListView.swift */,
+				00C6FD2AC77B407AA2440E4D /* ManualScanView.swift */,
+				FCA4E909062143A0BEEFD267 /* MenuBarViews.swift */,
+				DCA3E900C9E646CE8AAC5998 /* OnboardingView.swift */,
+				5E225BA26C7440D786E4D43E /* RootView.swift */,
+				403931C621B543009A2C7B72 /* ScanSettingsView.swift */,
+				AA000000000000000000F001 /* Checkbox.swift */,
+				A11A00000000000000000010 /* Assets.xcassets */,
+				5FEC82672427474290C2499B /* RulePackageService.swift */,
+				AA000000000000000000A001 /* AutoScanCoordinator.swift */,
+				AA000000000000000000B001 /* NotificationService.swift */,
+				AA000000000000000000C001 /* LoginItemService.swift */,
+				AA000000000000000000D001 /* WindowRouter.swift */,
+				AA000000000000000000E005 /* ScanLogService.swift */,
+				A11A00000000000000000012 /* TMSkip.entitlements */,
+			);
+			path = TMSkip;
+			sourceTree = "<group>";
+		};
+		A11A0000000000000000000E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A11A00000000000000000006 /* TMSkip.app */,
+				B10C0DE00000000000000001 /* TMSkipTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A11A0000000000000000000D = {
+			isa = PBXGroup;
+			children = (
+				A11A0000000000000000000F /* TMSkip */,
+				B10C0DE00000000000000002 /* TMSkipTests */,
+				A11A0000000000000000000E /* Products */,
+				A11A00000000000000000013 /* Signing.xcconfig */,
+			);
+			sourceTree = "<group>";
+		};
+		A11A00000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F7E9D8734B6447D8A76A050A /* RulePackageService.swift in Sources */,
+				AA000000000000000000A002 /* AutoScanCoordinator.swift in Sources */,
+				AA000000000000000000B002 /* NotificationService.swift in Sources */,
+				AA000000000000000000C002 /* LoginItemService.swift in Sources */,
+				AA000000000000000000D002 /* WindowRouter.swift in Sources */,
+				AA000000000000000000E006 /* ScanLogService.swift in Sources */,
+				D5692EE39D144D79A0F94FF6 /* AppModel.swift in Sources */,
+				80564597743B4DEC82C6DE81 /* DomainModels.swift in Sources */,
+				5BF352C21DF8439AA58AC933 /* RulePackage+Bundled.swift in Sources */,
+				BBE95FE9749B4D8CB0992ED0 /* DirectorySizeService.swift in Sources */,
+				A6D12AB5AF5D490AADCD4E9F /* FullDiskAccessService.swift in Sources */,
+				1C593158D96A4EE195DCD908 /* IgnoreStore.swift in Sources */,
+				815EAFF6E92A444C99A33679 /* ScanEngine.swift in Sources */,
+				299AEF29579A45C0B51BD56C /* SettingsStore.swift in Sources */,
+				50869F40A7164BBB955AAC84 /* TimeMachineExclusionService.swift in Sources */,
+				213534B5AA4846D186EAAF06 /* TMSkipApp.swift in Sources */,
+				F98C0025CD764BE9ADC58D98 /* AboutView.swift in Sources */,
+				4112B24AFBEC406FBFC3345D /* IgnoreListView.swift in Sources */,
+				DD44CDD93BB648A38AF49083 /* ManualScanView.swift in Sources */,
+				818FB096BF7843128DC787C8 /* MenuBarViews.swift in Sources */,
+				5AFA7C5E700C4D83A764EFE7 /* OnboardingView.swift in Sources */,
+				7F2A5C65B06643DC9023C416 /* RootView.swift in Sources */,
+				BB8E28ADCEC94EC1AE2EF45F /* ScanSettingsView.swift in Sources */,
+				AA000000000000000000F002 /* Checkbox.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A11A00000000000000000004 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A11A00000000000000000011 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A11A00000000000000000005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B10C0DE00000000000000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B10C0DE000000000000000C1 /* ScanEngineTests.swift in Sources */,
+				B10C0DE000000000000000C2 /* RuleParsingTests.swift in Sources */,
+				B10C0DE000000000000000C3 /* SettingsTests.swift in Sources */,
+				B10C0DE000000000000000C4 /* ExclusionServiceTests.swift in Sources */,
+				BB000000000000000000E002 /* AutoScanCoordinatorTests.swift in Sources */,
+				BB000000000000000000E004 /* SettingsDecodingTests.swift in Sources */,
+				BB000000000000000000E006 /* ScanLogTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B10C0DE00000000000000005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B10C0DE00000000000000009 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A11A00000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A11A00000000000000000002;
+			remoteInfo = TMSkip;
+		};
+		B10C0DE0000000000000000A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A11A00000000000000000002 /* TMSkip */;
+			targetProxy = B10C0DE00000000000000009 /* PBXContainerItemProxy */;
+		};
+		B10C0DE00000000000000003 /* TMSkipTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B10C0DE00000000000000008 /* Build configuration list for PBXNativeTarget "TMSkipTests" */;
+			buildPhases = (
+				B10C0DE00000000000000004 /* Sources */,
+				B10C0DE00000000000000005 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B10C0DE0000000000000000A /* PBXTargetDependency */,
+			);
+			name = TMSkipTests;
+			packageProductDependencies = (
+			);
+			productName = TMSkipTests;
+			productReference = B10C0DE00000000000000001 /* TMSkipTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		A11A00000000000000000002 /* TMSkip */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A11A00000000000000000008 /* Build configuration list for PBXNativeTarget "TMSkip" */;
+			buildPhases = (
+				A11A00000000000000000003 /* Sources */,
+				A11A00000000000000000005 /* Frameworks */,
+				A11A00000000000000000004 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TMSkip;
+			productName = TMSkip;
+			productReference = A11A00000000000000000006 /* TMSkip.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A11A00000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1630;
+				LastUpgradeCheck = 1630;
+				TargetAttributes = {
+					A11A00000000000000000002 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					B10C0DE00000000000000003 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = A11A00000000000000000002;
+					};
+				};
+			};
+			buildConfigurationList = A11A00000000000000000007 /* Build configuration list for PBXProject "TMSkip" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = A11A0000000000000000000D;
+			productRefGroup = A11A0000000000000000000E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A11A00000000000000000002 /* TMSkip */,
+				B10C0DE00000000000000003 /* TMSkipTests */,
+			);
+		};
+		A11A00000000000000000009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A11A0000000000000000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		A11A0000000000000000000B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A11A00000000000000000013 /* Signing.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = TMSkip/TMSkip.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "TMSkip (Debug)";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright 2026 TMSkip";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "app.tmskip.mac.debug";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+
+			};
+			name = Debug;
+		};
+		A11A0000000000000000000C /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A11A00000000000000000013 /* Signing.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = TMSkip/TMSkip.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = TMSkip;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright 2026 TMSkip";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.tmskip.mac;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+
+			};
+			name = Release;
+		};
+		B10C0DE00000000000000006 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A11A00000000000000000013 /* Signing.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "app.tmskip.macTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TMSkip.app/Contents/MacOS/TMSkip";
+			};
+			name = Debug;
+		};
+		B10C0DE00000000000000007 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A11A00000000000000000013 /* Signing.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "app.tmskip.macTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TMSkip.app/Contents/MacOS/TMSkip";
+			};
+			name = Release;
+		};
+		B10C0DE00000000000000008 /* Build configuration list for PBXNativeTarget "TMSkipTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B10C0DE00000000000000006 /* Debug */,
+				B10C0DE00000000000000007 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A11A00000000000000000007 /* Build configuration list for PBXProject "TMSkip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A11A00000000000000000009 /* Debug */,
+				A11A0000000000000000000A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A11A00000000000000000008 /* Build configuration list for PBXNativeTarget "TMSkip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A11A0000000000000000000B /* Debug */,
+				A11A0000000000000000000C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+	};
+	rootObject = A11A00000000000000000001 /* Project object */;
+}

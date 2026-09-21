@@ -1,0 +1,13 @@
+// 签名配置（入库的默认值）
+//
+// 仓库默认 ad-hoc（"-"）：任何人 clone 后无需证书即可构建运行。
+// 代价是 TCC 授权（完全磁盘访问等）绑定 cdhash，每次重新构建都要重新授权。
+// 想要"授权一次、重编译通用"：复制 Local.xcconfig.example 为同目录 Local.xcconfig，
+// 填入你自己的证书（该文件已 gitignore，不会误提交）。
+//
+// 优先级：本文件默认值 < Local.xcconfig（include 必须放在末尾才能覆盖）< Xcode GUI/命令行显式设置。
+
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_IDENTITY = -
+
+#include? "Local.xcconfig"
