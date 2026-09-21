@@ -109,12 +109,18 @@ git clone <repo> && cd TMSkip && open TMSkip.xcodeproj
 
 ### 自动发布：GitHub Actions（推送 tag）
 
-推送 `v*` 格式的 tag 时，`.github/workflows/release-dmg.yml` 自动并行构建
+推送 `v*` 格式的 tag 时，`.github/workflows/release-dmg.yml` 自动构建
 x86_64 / arm64 两个 DMG（产物 `dist/TMSkip-<版本>-<架构>.dmg`）并发布 GitHub
 Release：
 
-- 两个架构各自独立 job（`fail-fast: false`），**一个 DMG 构建失败不会取消另一个**
-- 发布 job 用 `!cancelled()` 兜底：无论哪个架构失败都会继续发布，只附加成功的 DMG
+- **单个 macos-15 job**：一次 universal 编译（x86_64 + arm64），再 lipo 拆分成
+  两个单架构 DMG——不依赖 Intel 运行器，任何 arm64 运行器即可
+- **失败隔离**：两个分包步骤各自 `continue-on-error`，某个 DMG 失败不影响另一个；
+  校验步骤只在两个都失败时才报错
+- **发布兜底**：发布 job 用 `!cancelled()` 兜底，只附加成功的 DMG；两个都失败
+  时不发空 Release
+- **版本从 tag 注入**：`v0.2.0` 产的 DMG 内版本即 0.2.0，与 Release 命名一致
+- Release 附带 `SHA256SUMS.txt` 校验和文件，下载后可自验完整性
 - 工作流也支持手动触发（Actions → 手动运行），仅构建不发布，用于调试
 
 CI 运行器无 Developer ID 证书，按工程默认 ad-hoc 签名打包（接收方首次打开需
@@ -146,11 +152,11 @@ TMSkip/
 │   └── Local.xcconfig.example   # 本机个人签名模板（复制为 Local.xcconfig，已 gitignore）
 ├── Scripts/
 │   ├── make-release.sh          # 打包发布（自动检测 Developer ID 并公证）
-│   ├── make-dmg.sh              # 单架构 DMG 打包（CI 按架构并行调用）
+│   ├── make-dmg.sh              # universal 构建 + 按架构 lipo 分包 DMG（CI 分步调用）
 │   ├── dev-run.sh               # 开发循环：构建 + 重启
 │   └── make_app_icon.swift      # 生成 AppIcon 图标的辅助脚本
 ├── .github/workflows/
-│   └── release-dmg.yml          # 推送 tag → 构建 x86_64/arm64 DMG → 发布 Release
+│   └── release-dmg.yml          # 推送 tag → universal 编译 → lipo 分包 DMG → 发布 Release
 └── TMSkipTests/                 # 单元测试（7 个测试类）
 ```
 

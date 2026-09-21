@@ -1,57 +1,99 @@
 # 推送 tag（v*）时自动构建 x86_64 / arm64 两个 DMG 并发布 GitHub Release。
 #
-# 失败隔离设计：
-#   - 两个架构各自独立 job 并行构建，matrix fail-fast: false ——
-#     某一个 DMG 构建失败不会取消另一个架构的构建；
-#   - 发布 job 用 `!cancelled()` 兜底，无论哪个架构失败都会继续执行，
-#     只把成功产出的 DMG 附加到 Release，缺失的架构不阻断发布。
+# 构建策略（不依赖 Intel 运行器）：
+#   - 单个 macos-15（arm64）job：一次 universal 编译（x86_64 + arm64），
+#     再用 lipo 拆分出两个单架构 app 分别打 DMG；
+#   - 两个分包步骤各自 continue-on-error：某一个 DMG 失败不影响另一个；
+#   - 校验步骤只在「两个 DMG 都失败」时使 job 失败；
+#   - 发布 job 用 `!cancelled()` 兜底：即使某个分包失败也发布，只附成功 DMG；
+#     两个都失败时跳过发布（hashFiles 守卫）。
+# 版本号从 tag 注入（v0.2.0 → DMG 内 0.2.0），与 Release 命名一致；
+# 手动触发可显式指定版本号。
 name: Release DMG
 
 on:
   push:
     tags:
       - 'v*'
-  # 手动触发仅用于调试构建（不发布 Release）
   workflow_dispatch:
+    inputs:
+      version:
+        description: 手动构建使用的版本号（如 0.2.0；留空则读 Info.plist）
+        required: false
+        default: ''
+        type: string
 
-permissions:
-  contents: write # 创建 / 更新 GitHub Release 及上传资产
+# 同一 ref（tag/分支）上的重复运行自动取消旧的，避免并发抢发 Release
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-dmg:
-    name: Build DMG (${{ matrix.arch }})
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      fail-fast: false # 一个架构失败不取消另一个
-      matrix:
-        include:
-          # x64：Intel 运行器原生构建（若 GitHub 退役 macos-13，
-          # 可改为 arm64 运行器交叉编译：runner 换成 macos-14/15 即可，
-          # 脚本已支持 ARCHS 覆盖）
-          - arch: x86_64
-            runner: macos-13
-          - arch: arm64
-            runner: macos-15
+  build:
+    name: Build & package DMGs
+    runs-on: macos-15
+    timeout-minutes: 30 # 防止运行器排队/挂起时无限等待
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build & package DMG (${{ matrix.arch }})
-        run: ./Scripts/make-dmg.sh ${{ matrix.arch }}
+      - name: Get version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/v}
+            if [ "$VERSION" = "$GITHUB_REF" ]; then VERSION=""; fi
+          fi
+          VERSION="${VERSION#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Upload DMG artifact
+      - name: Build universal app
+        run: ./Scripts/make-dmg.sh build
+
+      - name: Package DMG (arm64)
+        continue-on-error: true # 失败不阻断 x86_64 分包与发布
+        run: ./Scripts/make-dmg.sh package ${{ steps.version.outputs.VERSION }} arm64
+
+      - name: Package DMG (x86_64)
+        continue-on-error: true
+        run: ./Scripts/make-dmg.sh package ${{ steps.version.outputs.VERSION }} x86_64
+
+      - name: Verify at least one DMG
+        run: |
+          if ! ls dist/*.dmg >/dev/null 2>&1; then
+            echo "两个 DMG 都构建失败" >&2
+            exit 1
+          fi
+          ls -lh dist/*.dmg
+
+      - name: Generate SHA256 checksums
+        working-directory: dist
+        run: |
+          shasum -a 256 *.dmg > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Upload DMGs
         uses: actions/upload-artifact@v4
         with:
-          name: dmg-${{ matrix.arch }}
-          path: dist/*.dmg
+          name: tmskip-dmg
+          path: |
+            dist/*.dmg
+            dist/SHA256SUMS.txt
           if-no-files-found: error
 
   publish-release:
     name: Publish GitHub Release
-    needs: build-dmg
-    # 即使某个架构构建失败也发布；手动触发（无 tag）时跳过发布
+    needs: build
+    # 即使某个分包失败也发布；手动触发（无 tag）时跳过发布
     if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # 创建 / 更新 Release 及上传资产
     steps:
       - name: Download DMGs
         uses: actions/download-artifact@v4
@@ -64,9 +106,12 @@ jobs:
         run: ls -la dist || true
 
       - name: Create / update release
+        # 两个 DMG 都失败时不发空 Release
+        if: hashFiles('dist/*.dmg') != ''
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.dmg
-          # 无 DMG 匹配也允许发布（极端情况下只发说明，不因缺资产失败）
+          files: |
+            dist/*.dmg
+            dist/SHA256SUMS.txt
           fail_on_unmatched_files: false
           generate_release_notes: true
