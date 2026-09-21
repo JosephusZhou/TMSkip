@@ -107,6 +107,19 @@ git clone <repo> && cd TMSkip && open TMSkip.xcodeproj
 `Config/Local.xcconfig.example` 为 `Config/Local.xcconfig` 并填入自己的开发者证书
 （该文件不入库）。Debug 与 Release 使用同一张证书时，两边共享同一份授权。
 
+### 自动发布：GitHub Actions（推送 tag）
+
+推送 `v*` 格式的 tag 时，`.github/workflows/release-dmg.yml` 自动并行构建
+x86_64 / arm64 两个 DMG（产物 `dist/TMSkip-<版本>-<架构>.dmg`）并发布 GitHub
+Release：
+
+- 两个架构各自独立 job（`fail-fast: false`），**一个 DMG 构建失败不会取消另一个**
+- 发布 job 用 `!cancelled()` 兜底：无论哪个架构失败都会继续发布，只附加成功的 DMG
+- 工作流也支持手动触发（Actions → 手动运行），仅构建不发布，用于调试
+
+CI 运行器无 Developer ID 证书，按工程默认 ad-hoc 签名打包（接收方首次打开需
+右键 → 打开）。如需自动签名 + 公证，可在仓库 secrets 中配置证书后扩展该工作流。
+
 ### `make-release.sh` 环境变量
 
 | 变量 | 作用 |
@@ -133,8 +146,11 @@ TMSkip/
 │   └── Local.xcconfig.example   # 本机个人签名模板（复制为 Local.xcconfig，已 gitignore）
 ├── Scripts/
 │   ├── make-release.sh          # 打包发布（自动检测 Developer ID 并公证）
+│   ├── make-dmg.sh              # 单架构 DMG 打包（CI 按架构并行调用）
 │   ├── dev-run.sh               # 开发循环：构建 + 重启
 │   └── make_app_icon.swift      # 生成 AppIcon 图标的辅助脚本
+├── .github/workflows/
+│   └── release-dmg.yml          # 推送 tag → 构建 x86_64/arm64 DMG → 发布 Release
 └── TMSkipTests/                 # 单元测试（7 个测试类）
 ```
 

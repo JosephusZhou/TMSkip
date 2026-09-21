@@ -1,0 +1,72 @@
+# 推送 tag（v*）时自动构建 x86_64 / arm64 两个 DMG 并发布 GitHub Release。
+#
+# 失败隔离设计：
+#   - 两个架构各自独立 job 并行构建，matrix fail-fast: false ——
+#     某一个 DMG 构建失败不会取消另一个架构的构建；
+#   - 发布 job 用 `!cancelled()` 兜底，无论哪个架构失败都会继续执行，
+#     只把成功产出的 DMG 附加到 Release，缺失的架构不阻断发布。
+name: Release DMG
+
+on:
+  push:
+    tags:
+      - 'v*'
+  # 手动触发仅用于调试构建（不发布 Release）
+  workflow_dispatch:
+
+permissions:
+  contents: write # 创建 / 更新 GitHub Release 及上传资产
+
+jobs:
+  build-dmg:
+    name: Build DMG (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false # 一个架构失败不取消另一个
+      matrix:
+        include:
+          # x64：Intel 运行器原生构建（若 GitHub 退役 macos-13，
+          # 可改为 arm64 运行器交叉编译：runner 换成 macos-14/15 即可，
+          # 脚本已支持 ARCHS 覆盖）
+          - arch: x86_64
+            runner: macos-13
+          - arch: arm64
+            runner: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build & package DMG (${{ matrix.arch }})
+        run: ./Scripts/make-dmg.sh ${{ matrix.arch }}
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dmg-${{ matrix.arch }}
+          path: dist/*.dmg
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: build-dmg
+    # 即使某个架构构建失败也发布；手动触发（无 tag）时跳过发布
+    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download DMGs
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+        continue-on-error: true # 两个架构都失败、无产物时跳过下载，不阻断发布
+
+      - name: List artifacts
+        run: ls -la dist || true
+
+      - name: Create / update release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.dmg
+          # 无 DMG 匹配也允许发布（极端情况下只发说明，不因缺资产失败）
+          fail_on_unmatched_files: false
+          generate_release_notes: true
