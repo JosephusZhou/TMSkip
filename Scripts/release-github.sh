@@ -259,15 +259,19 @@ print(next((a['id'] for a in d if a['name']==sys.argv[1]), ''))" "$NAME")"
         "$API/repos/$OWNER/$REPO/releases/assets/$ASSET_ID" >/dev/null 2>&1 || true
   fi
   echo "==> 上传 ${NAME}（$(( $(wc -c < "$FILE" | tr -d ' ') / 1024 / 1024 )) MB）"
+  # 注意：不能用 -G + --data-binary（会把文件二进制塞进 URL 导致请求失败）；
+  # 上传 API 要求 name 作为 query 参数，文件本体走 POST body。
+  NAME_ENC="$(printf '%s' "$NAME" | python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read()))')"
   status="$(curl -sS -o "$TMP_DIR/upload.json" -w '%{http_code}' -X POST \
       -H "$AUTH" -H 'Accept: application/vnd.github+json' \
       -H 'Content-Type: application/octet-stream' \
       --data-binary "@$FILE" \
-      -G "$UPLOAD_API/repos/$OWNER/$REPO/releases/$RELEASE_ID/assets" \
-      --data-urlencode "name=$NAME" 2>/dev/null || true)"
+      "$UPLOAD_API/repos/$OWNER/$REPO/releases/$RELEASE_ID/assets?name=$NAME_ENC" \
+      2>"$TMP_DIR/upload.err" || true)"
   if [ "$status" != 201 ]; then
     echo "错误：上传 ${NAME} 失败（HTTP ${status}）" >&2
-    cat "$TMP_DIR/upload.json" >&2 || true
+    cat "$TMP_DIR/upload.json" 2>/dev/null >&2 || true
+    [ -s "$TMP_DIR/upload.err" ] && cat "$TMP_DIR/upload.err" >&2 || true
     exit 1
   fi
 done
