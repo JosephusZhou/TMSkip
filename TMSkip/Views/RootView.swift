@@ -1,4 +1,123 @@
+import Combine
 import SwiftUI
+
+extension UIMode {
+    /// 解析当前应生效的 SwiftUI 环境色，**永不返回 nil**：
+    /// `.system` 时实时读取系统当前外观（浅/深）并返回具体值，
+    /// 显式模式下返回固定值。避免 macOS 上「先设显式外观、再设
+    /// `preferredColorScheme(nil)` 无法恢复跟随系统」的已知问题。
+    var resolvedColorScheme: ColorScheme {
+        switch self {
+        case .light: return .light
+        case .dark: return .dark
+        case .system: return Self.systemIsDark() ? .dark : .light
+        }
+    }
+
+    /// 与 `resolvedColorScheme` 同源的 NSAppearance（永不返回 nil），
+    /// 供窗口级同步器直接赋值。
+    var resolvedAppearance: NSAppearance {
+        resolvedColorScheme == .dark
+            ? NSAppearance(named: .darkAqua)!
+            : NSAppearance(named: .aqua)!
+    }
+
+    /// 系统当前是否为深色外观。
+    /// 直接读系统设置（Apple Global Domain 的 AppleInterfaceStyle），
+    /// **不依赖 NSApp.effectiveAppearance**——macOS 上把 `NSApp.appearance`
+    /// 设为显式值后再置 nil 并不总能还原系统外观，effectiveAppearance
+    /// 可能停留在旧值，导致跟随系统解析出错。
+    static func systemIsDark() -> Bool {
+        let style = UserDefaults.standard
+            .persistentDomain(forName: "Apple Global Domain")?["AppleInterfaceStyle"] as? String
+        return style == "Dark"
+    }
+}
+
+/// 外观同步器：每个承载窗口（主窗口 / MenuBarExtra 弹窗）自己订阅设置变化、
+/// 系统主题变化，并**直接写本窗口外观**。不依赖 `applyUIMode()` 遍历
+/// `NSApp.windows`——MenuBarExtra 面板不在该列表内，打开状态切换模式时
+/// 只能由本窗口自己兜底。自身不缓存模式值，全部从当前设置实时解析。
+struct AppearanceSynchronizer: NSViewRepresentable {
+    let app: AppModel
+
+    func makeCoordinator() -> Coordinator { Coordinator(app: app) }
+
+    func makeNSView(context: Context) -> NSView {
+        let coordinator = context.coordinator
+        let host = AppearanceHostView()
+        host.onWindowChange = { [weak coordinator] in
+            coordinator?.applyToOwnWindow()
+        }
+        coordinator.attach(to: host)
+        return host
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        context.coordinator.attach(to: nsView)
+        context.coordinator.applyToOwnWindow()
+    }
+
+    final class Coordinator: NSObject {
+        private weak var app: AppModel?
+        private weak var view: NSView?
+        private var observers: [Any] = []
+        private var settingsCancellable: AnyCancellable?
+
+        init(app: AppModel) { self.app = app }
+
+        func attach(to view: NSView) {
+            self.view = view
+            Task { @MainActor [weak self] in
+                self?.subscribe()
+            }
+        }
+
+        @MainActor
+        private func subscribe() {
+            guard settingsCancellable == nil else { return }
+            // 1) 设置变化（含模式切换）→ 直接把本窗口外观写成当前解析值。
+            //    弹窗开着时从主窗口切换模式也走这条订阅，实时生效。
+            settingsCancellable = app?.settingsStore.$settings
+                .dropFirst()
+                .receive(on: RunLoop.main)
+                .sink { [weak self] _ in
+                    self?.applyToOwnWindow()
+                }
+            // 2) 系统主题变化（跟随系统模式）→ 重新解析并写本窗口。
+            if observers.isEmpty {
+                observers = [
+                    DistributedNotificationCenter().addObserver(
+                        forName: NSNotification.Name("AppleInterfaceThemeChangedNotification"),
+                        object: nil,
+                        queue: .main
+                    ) { [weak self] _ in
+                        self?.applyToOwnWindow()
+                    },
+                ]
+            }
+        }
+
+        /// 直接写本窗口外观（从当前设置实时解析，不缓存旧值）。
+        func applyToOwnWindow() {
+            Task { @MainActor [weak self] in
+                guard let self, let window = self.view?.window else { return }
+                window.appearance = self.app?.settings.uiMode.resolvedAppearance
+            }
+        }
+    }
+}
+
+/// 在视图挂入窗口/切窗口时回调（弹窗每次重开都会新建内容视图，
+/// 此时窗口已存在，需要重新应用一次外观）。
+private final class AppearanceHostView: NSView {
+    var onWindowChange: (() -> Void)?
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        onWindowChange?()
+    }
+}
 
 struct RootView: View {
     @EnvironmentObject private var app: AppModel
@@ -34,6 +153,8 @@ struct RootView: View {
                 .zIndex(10)
             }
         }
+        .preferredColorScheme(app.settings.uiMode.resolvedColorScheme)
+        .background(AppearanceSynchronizer(app: app))
         .animation(.easeInOut(duration: 0.2), value: app.showOnboarding)
         .animation(.easeInOut(duration: 0.2), value: app.statusMessage)
     }

@@ -30,6 +30,7 @@ final class SettingsDecodingTests: XCTestCase {
         XCTAssertEqual(settings.applyPolicy, .notifyConfirm)
         XCTAssertTrue(settings.autoRuleSync, "新字段缺省时应为默认 true")
         XCTAssertNil(settings.lastAutoScanAt)
+        XCTAssertEqual(settings.uiMode, .system, "缺省 uiMode 应为跟随系统")
         // Missing rule package falls back to the non-empty bundled snapshot.
         XCTAssertFalse(settings.rulePackage.rules.isEmpty)
         XCTAssertFalse(settings.roots.isEmpty)
@@ -60,12 +61,28 @@ final class SettingsDecodingTests: XCTestCase {
         XCTAssertEqual(settings.scanInterval, .minutes30)
     }
 
+    func testCorruptUIModeFallsBackToSystem() throws {
+        // Unknown raw value for the new enum → defaults to .system, other
+        // fields survive.
+        let json = """
+        {
+          "uiMode": "neon-green",
+          "autoScanEnabled": false
+        }
+        """.data(using: .utf8)!
+
+        let settings = try decoder.decode(AppSettings.self, from: json)
+        XCTAssertEqual(settings.uiMode, .system)
+        XCTAssertFalse(settings.autoScanEnabled)
+    }
+
     func testRoundTripPreservesNewFields() throws {
         var settings = AppSettings()
         settings.autoScanEnabled = false
         settings.autoRuleSync = false
         settings.lastAutoScanAt = Date(timeIntervalSince1970: 1_700_000_000)
         settings.scanInterval = .hours6
+        settings.uiMode = .dark
 
         let data = try encoder.encode(settings)
         let decoded = try decoder.decode(AppSettings.self, from: data)
@@ -74,5 +91,6 @@ final class SettingsDecodingTests: XCTestCase {
         XCTAssertFalse(decoded.autoRuleSync)
         XCTAssertEqual(decoded.scanInterval, .hours6)
         XCTAssertEqual(decoded.lastAutoScanAt, Date(timeIntervalSince1970: 1_700_000_000))
+        XCTAssertEqual(decoded.uiMode, .dark)
     }
 }

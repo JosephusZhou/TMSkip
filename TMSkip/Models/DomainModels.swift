@@ -310,6 +310,23 @@ struct RuleUpdateReport: Equatable {
 
 // MARK: - Settings
 
+/// UI 外观模式：跟随系统 / 固定日间 / 固定夜间。
+enum UIMode: String, CaseIterable, Identifiable, Codable {
+    case system
+    case light
+    case dark
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .system: return "跟随系统"
+        case .light: return "日间模式"
+        case .dark: return "夜间模式"
+        }
+    }
+}
+
 struct AppSettings: Codable, Equatable {
     var autoScanEnabled: Bool = true
     var scanInterval: ScanInterval = .minutes30
@@ -332,6 +349,8 @@ struct AppSettings: Codable, Equatable {
     var lastAutoScanAt: Date? = nil
     /// PRD §6.4.4 daily background rule check (user-toggleable).
     var autoRuleSync: Bool = true
+    /// UI 外观模式（日间 / 夜间 / 跟随系统）。
+    var uiMode: UIMode = .system
 
     /// Explicit coding keys so the custom decoder below can evolve independently
     /// of the synthesized memberwise initializer; new fields simply get a key here.
@@ -353,6 +372,7 @@ struct AppSettings: Codable, Equatable {
         case lastRuleCheckMessage
         case lastAutoScanAt
         case autoRuleSync
+        case uiMode
     }
 
     static let defaultSkipPaths = [
@@ -424,6 +444,7 @@ extension AppSettings {
         lastRuleCheckMessage = try? c.decodeIfPresent(String.self, forKey: .lastRuleCheckMessage) ?? nil
         lastAutoScanAt = try? c.decodeIfPresent(Date.self, forKey: .lastAutoScanAt) ?? nil
         autoRuleSync = fallback(.autoRuleSync, true)
+        uiMode = fallback(.uiMode, UIMode.system)
     }
 }
 

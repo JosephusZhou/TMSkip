@@ -98,6 +98,8 @@ final class AppModel: ObservableObject {
             .store(in: &cancellables)
 
         autoCoordinator = AutoScanCoordinator(model: self)
+        // 启动即应用外观，避免窗口出现时闪一下错误主题。
+        applyUIMode()
         bootstrapBackgroundServices()
     }
 
@@ -110,6 +112,7 @@ final class AppModel: ObservableObject {
         var applyPolicy: ApplyPolicy
         var notificationsEnabled: Bool
         var autoRuleSync: Bool
+        var uiMode: UIMode
 
         init(_ s: AppSettings) {
             autoScanEnabled = s.autoScanEnabled
@@ -119,6 +122,7 @@ final class AppModel: ObservableObject {
             applyPolicy = s.applyPolicy
             notificationsEnabled = s.notificationsEnabled
             autoRuleSync = s.autoRuleSync
+            uiMode = s.uiMode
         }
     }
 
@@ -150,8 +154,43 @@ final class AppModel: ObservableObject {
         if old.autoRuleSync != next.autoRuleSync {
             scheduleRuleAutoSync()
         }
+        if old.uiMode != next.uiMode {
+            applyUIMode()
+        }
         // applyPolicy / notificationsEnabled are read at routing/notify time,
         // so they need no service reconfiguration.
+    }
+
+    /// 应用 UI 外观（**唯一全局权威入口**：启动、模式切换、系统主题变化时调用）。
+    /// 只做**窗口级**显式赋值（window.appearance），**不设置 NSApp.appearance**：
+    /// 一旦设置 NSApp.appearance，菜单栏图标（模板图）会按应用外观着色而非
+    /// 系统菜单栏——日间模式下图标变黑、与菜单栏背景不匹配。保持
+    /// NSApp.appearance = nil，图标永远跟随系统菜单栏（浅色栏黑图标、
+    /// 深色栏白图标），与应用自身主题无关。
+    /// 跟随系统时写**具体解析值**（读系统 AppleInterfaceStyle），绝不写 nil：
+    /// macOS 上窗口被显式设过外观后置 nil 不总能可靠还原继承。
+    /// **跳过菜单栏图标宿主窗口**（无边框、状态栏级）：它的外观必须保持
+    /// 跟随系统，一旦被写成应用模式，日间模式下图标就会被着成黑色。
+    func applyUIMode() {
+        #if DEBUG
+        dumpWindowDiagnostics()
+        #endif
+        let windowAppearance = settings.uiMode.resolvedAppearance
+        for window in NSApp.windows where window.appearance?.name != windowAppearance.name {
+            let isStatusItemHost = window.styleMask.contains(.borderless)
+                && window.level.rawValue >= NSWindow.Level.statusBar.rawValue
+            if isStatusItemHost { continue }
+            window.appearance = windowAppearance
+        }
+    }
+
+    /// 临时诊断（DEBUG 构建）：把窗口外观信息写到 /tmp，用于定位菜单栏图标宿主窗口。
+    private func dumpWindowDiagnostics() {
+        let lines = NSApp.windows.map { w -> String in
+            "title=\(w.title) style=\(w.styleMask.rawValue) level=\(w.level.rawValue) frame=\(w.frame) visible=\(w.isVisible) appearance=\(w.appearance?.name.rawValue ?? "nil") effective=\(w.effectiveAppearance.name.rawValue)"
+        }
+        let text = "systemIsDark=\(UIMode.systemIsDark()) uiMode=\(settings.uiMode) appEffective=\(NSApp.effectiveAppearance.name.rawValue)\n" + lines.joined(separator: "\n") + "\n"
+        try? text.write(toFile: "/tmp/tmskip_windows_diag.txt", atomically: true, encoding: .utf8)
     }
 
     private func syncLoginItem(notifyOnError: Bool) {

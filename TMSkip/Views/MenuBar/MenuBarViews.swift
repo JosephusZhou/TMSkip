@@ -16,6 +16,37 @@ struct MenuBarLabelView: View {
             }
         }
         .help(app.pendingReview ? "TMSkip · 有待处理结果" : "TMSkip")
+        // 菜单栏图标着色完全交给系统（模板图自动跟随菜单栏实际明暗），
+        // 不设置任何 colorScheme/appearance：任何强制值都会覆盖系统对
+        // 图标的自动着色，导致图标与应用/系统状态不一致。
+        .background(HostWindowDiagnostics())
+    }
+}
+
+/// 诊断（DEBUG 构建）：记录菜单栏图标宿主窗口的身份与外观，写入
+/// /tmp/tmskip_windows_diag.txt，用于定位图标着色来源。
+private struct HostWindowDiagnostics: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let v = DiagnosticView()
+        return v
+    }
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    private final class DiagnosticView: NSView {
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            Self.dumpHostWindow(from: self)
+        }
+        private static func dumpHostWindow(from v: NSView) {
+            guard let w = v.window else { return }
+            let line = "LABEL_HOST: inAppWindows=\(NSApp.windows.contains(w)) title=\(w.title) style=\(w.styleMask.rawValue) level=\(w.level.rawValue) frame=\(w.frame) visible=\(w.isVisible) appearance=\(w.appearance?.name.rawValue ?? "nil") effective=\(w.effectiveAppearance.name.rawValue)"
+            if var text = try? String(contentsOfFile: "/tmp/tmskip_windows_diag.txt", encoding: .utf8) {
+                text += line + "\n"
+                try? text.write(toFile: "/tmp/tmskip_windows_diag.txt", atomically: true, encoding: .utf8)
+            } else {
+                try? (line + "\n").write(toFile: "/tmp/tmskip_windows_diag.txt", atomically: true, encoding: .utf8)
+            }
+        }
     }
 }
 
@@ -48,6 +79,19 @@ struct MenuBarPopoverView: View {
             }
 
             VStack(spacing: 4) {
+                Toggle(isOn: Binding(
+                    get: { app.settings.autoScanEnabled },
+                    set: { v in app.settingsStore.update { $0.autoScanEnabled = v } }
+                )) {
+                    Text("启用自动扫描")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 8)
+                        .contentShape(Rectangle())
+                }
+                .toggleStyle(.switch)
+                .controlSize(.small)
+
                 if app.autoPendingCandidates.count > 0 {
                     mbButton("查看 \(app.autoPendingCandidates.count) 项待处理", emphasized: true) {
                         app.openMainWindow(to: .manualScan)
@@ -65,12 +109,29 @@ struct MenuBarPopoverView: View {
 
             Divider()
 
-            Toggle("启用自动扫描", isOn: Binding(
-                get: { app.settings.autoScanEnabled },
-                set: { v in app.settingsStore.update { $0.autoScanEnabled = v } }
-            ))
-            .toggleStyle(.switch)
-            .controlSize(.small)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("外观").font(.caption).foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    ForEach(UIMode.allCases) { mode in
+                        let selected = app.settings.uiMode == mode
+                        Button {
+                            app.settingsStore.update { $0.uiMode = mode }
+                        } label: {
+                            Text(mode.title)
+                                .font(.caption)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 4)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(selected ? Color.accentColor : Color.primary)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(selected ? Color.accentColor.opacity(0.12) : Color.clear)
+                        )
+                    }
+                }
+            }
 
             Button("退出 TMSkip") {
                 NSApplication.shared.terminate(nil)
@@ -81,6 +142,8 @@ struct MenuBarPopoverView: View {
         }
         .padding(14)
         .frame(width: 280)
+        .preferredColorScheme(app.settings.uiMode.resolvedColorScheme)
+        .background(AppearanceSynchronizer(app: app))
     }
 
     private var statusText: String {

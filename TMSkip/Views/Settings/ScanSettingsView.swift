@@ -20,6 +20,17 @@ struct ScanSettingsView: View {
                     Spacer()
                 }
 
+                card("外观") {
+                    pickerRow("UI 模式") {
+                        DownwardPicker(selection: uiModeBinding, titleFor: { $0.title })
+                            .frame(width: 140)
+                    }
+                    Text("「跟随系统」时随 macOS 外观自动切换（浅色 / 深色）。")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
                 card("自动扫描") {
                     toggleRow("启用自动扫描", subtitle: "后台按策略发现可排除目录", isOn: autoScanBinding)
                     pickerRow("触发间隔") {
@@ -267,6 +278,12 @@ struct ScanSettingsView: View {
         Binding(
             get: { app.settings.noReinclude },
             set: { v in app.settingsStore.update { $0.noReinclude = v } }
+        )
+    }
+    private var uiModeBinding: Binding<UIMode> {
+        Binding(
+            get: { app.settings.uiMode },
+            set: { v in app.settingsStore.update { $0.uiMode = v } }
         )
     }
 
