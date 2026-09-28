@@ -310,7 +310,7 @@ struct RuleUpdateReport: Equatable {
 
 // MARK: - Settings
 
-/// UI 外观模式：跟随系统 / 固定日间 / 固定夜间。
+/// UI 外观模式：跟随系统 / 固定浅色 / 固定深色。
 enum UIMode: String, CaseIterable, Identifiable, Codable {
     case system
     case light
@@ -321,8 +321,8 @@ enum UIMode: String, CaseIterable, Identifiable, Codable {
     var title: String {
         switch self {
         case .system: return "跟随系统"
-        case .light: return "日间模式"
-        case .dark: return "夜间模式"
+        case .light: return "浅色模式"
+        case .dark: return "深色模式"
         }
     }
 }
@@ -349,7 +349,7 @@ struct AppSettings: Codable, Equatable {
     var lastAutoScanAt: Date? = nil
     /// PRD §6.4.4 daily background rule check (user-toggleable).
     var autoRuleSync: Bool = true
-    /// UI 外观模式（日间 / 夜间 / 跟随系统）。
+    /// UI 外观模式（浅色 / 深色 / 跟随系统）。
     var uiMode: UIMode = .system
 
     /// Explicit coding keys so the custom decoder below can evolve independently

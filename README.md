@@ -107,25 +107,53 @@ git clone <repo> && cd TMSkip && open TMSkip.xcodeproj
 `Config/Local.xcconfig.example` 为 `Config/Local.xcconfig` 并填入自己的开发者证书
 （该文件不入库）。Debug 与 Release 使用同一张证书时，两边共享同一份授权。
 
-### 自动发布：GitHub Actions（推送 tag）
+### 本地发布 GitHub Release（自动打包 + 上传 DMG + 绑定 tag）
 
-推送 `v*` 格式的 tag 时，`.github/workflows/release-dmg.yml` 自动构建
-x86_64 / arm64 两个 DMG（产物 `dist/TMSkip-<版本>-<架构>.dmg`）并发布 GitHub
-Release：
+`./Scripts/release-github.sh` 在本机完成「编译 → 分包 → 发布」全流程，不依赖
+GitHub Actions（运行器 macOS SDK 较老，打包出的 UI 与本机最新 SDK 有差异）：
 
-- **单个 macos-15 job**：一次 universal 编译（x86_64 + arm64），再 lipo 拆分成
-  两个单架构 DMG——不依赖 Intel 运行器，任何 arm64 运行器即可
-- **失败隔离**：两个分包步骤各自 `continue-on-error`，某个 DMG 失败不影响另一个；
-  校验步骤只在两个都失败时才报错
-- **发布兜底**：发布 job 用 `!cancelled()` 兜底，只附加成功的 DMG；两个都失败
-  时不发空 Release
-- **版本从 tag 注入**：`v0.2.0` 产的 DMG 内版本即 0.2.0，与 Release 命名一致
-- Release 附带 `SHA256SUMS.txt` 校验和文件，下载后可自验完整性
-- 工作流也支持手动触发（Actions → 手动运行）：不勾选 `publish_release` 时仅构建
-  用于调试；勾选后以 `version` 输入为 tag 名（`v<version>`）发布 Release
+1. 一次 universal 编译（x86_64 + arm64），再 lipo 拆分成两个单架构 DMG：
+   `dist/TMSkip-<版本>-arm64.dmg` / `dist/TMSkip-<版本>-x86_64.dmg`
+2. 生成 `dist/SHA256SUMS.txt` 校验和，随 Release 一并上传
+3. 版本号默认读构建产物 Info.plist（也可作为参数传入，如
+   `./Scripts/release-github.sh 0.4.0`，DMG 内版本与 tag 对齐），
+   Release 自动绑定 `v<版本>` tag：
+   - 本地/远端没有该 tag 时，自动在当前 HEAD 创建并 push 到 origin；
+   - tag 已存在则直接绑定，绝不移动已有 tag（仅远端存在时会先 fetch 到本地）
+4. 通过 GitHub API 创建或更新对应 Release，并上传 DMG 与校验和
+   （同一版本重复执行 = 更新 Release + 同名资产先删后传）
 
-CI 运行器无 Developer ID 证书，按工程默认 ad-hoc 签名打包（接收方首次打开需
-右键 → 打开）。如需自动签名 + 公证，可在仓库 secrets 中配置证书后扩展该工作流。
+前置：导出 `GITHUB_TOKEN`（需 `repo` 权限，GitHub → Settings → Developer
+settings → Personal access tokens 生成）；或本机安装并登录 `gh` CLI。
+
+```bash
+export GITHUB_TOKEN=ghp_xxx
+./Scripts/release-github.sh                 # 用工程当前版本（如 0.4.0）构建并发布
+./Scripts/release-github.sh 0.4.0           # 指定版本（构建 + 发布，绑定 v0.4.0）
+./Scripts/release-github.sh --skip-build    # 复用 dist 已有 DMG，只做发布
+./Scripts/release-github.sh --dry-run       # 构建打包，但不 push tag / 不调 API
+DRAFT=1 ./Scripts/release-github.sh         # 以草稿形式创建 Release，确认后再手动发布
+```
+
+签名沿用工程配置（本机配置 `Config/Local.xcconfig` 则用个人证书，否则 ad-hoc）；
+lipo 分包改写了主二进制，脚本自动按同一身份重签。需要覆盖重签身份时（例如匿名分发）：
+
+```bash
+ANON=1 ./Scripts/release-github.sh                  # 强制 ad-hoc 重签（包内不含证书身份）
+IDENTITY="Developer ID Application: xxx" \
+  ./Scripts/release-github.sh                       # 指定身份重签（或 "-" 表示 ad-hoc）
+```
+
+注意：覆盖仅作用于 lipo 分包后的重签，最终 DMG 内 app 以该身份为准；Xcode
+构建阶段仍用工程签名（不影响产物）。Developer ID 重签后若未公证，下载者首次
+打开仍需右键 → 打开。
+
+### `make-dmg.sh` 环境变量（`release-github.sh` 同样生效）
+
+| 变量 | 作用 |
+|------|------|
+| `ANON=1` | 强制 ad-hoc 重签（优先级最高，包内不含证书身份） |
+| `IDENTITY` | 指定重签身份（如 `Developer ID Application: xxx`，或 `-` 表示 ad-hoc） |
 
 ### `make-release.sh` 环境变量
 
@@ -153,11 +181,10 @@ TMSkip/
 │   └── Local.xcconfig.example   # 本机个人签名模板（复制为 Local.xcconfig，已 gitignore）
 ├── Scripts/
 │   ├── make-release.sh          # 打包发布（自动检测 Developer ID 并公证）
-│   ├── make-dmg.sh              # universal 构建 + 按架构 lipo 分包 DMG（CI 分步调用）
+│   ├── make-dmg.sh              # universal 构建 + 按架构 lipo 分包 DMG（脚本复用）
+│   ├── release-github.sh        # 本地构建 DMG + 绑定 tag + GitHub API 发布 Release
 │   ├── dev-run.sh               # 开发循环：构建 + 重启
 │   └── make_app_icon.swift      # 生成 AppIcon 图标的辅助脚本
-├── .github/workflows/
-│   └── release-dmg.yml          # 推送 tag → universal 编译 → lipo 分包 DMG → 发布 Release
 └── TMSkipTests/                 # 单元测试（7 个测试类）
 ```
 

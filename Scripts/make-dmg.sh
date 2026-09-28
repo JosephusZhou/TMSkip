@@ -11,6 +11,9 @@
 #       如 v0.2.0 → 0.2.0）；缺省读构建产物的 Info.plist。
 # 签名：沿用工程配置（CI 无证书时即 ad-hoc）。lipo 分包改写了主二进制，必须重签；
 #       重签身份取 xcodebuild 的 CODE_SIGN_IDENTITY，本地个人证书与 CI ad-hoc 都正确。
+#       可用环境变量覆盖重签身份（优先级 ANON=1 > IDENTITY > 工程 CODE_SIGN_IDENTITY）：
+#   ANON=1          强制 ad-hoc 重签（包内不含证书身份，匿名分发）
+#   IDENTITY        指定重签身份（如 "Developer ID Application: xxx"，或 "-" 表示 ad-hoc）
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -59,9 +62,16 @@ build_universal() {
 
 package_archs() {
   VERSION="${VERSION:-$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$BUILT_APP/Contents/Info.plist")}"
-  SIGN_ID="$(xcodebuild -project "$PROJ" -scheme "$SCHEME" -configuration Release \
-      -showBuildSettings 2>/dev/null | awk -F' = ' '/CODE_SIGN_IDENTITY =/{print $2; exit}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
-  SIGN_ID="${SIGN_ID:--}"
+  # 重签身份优先级：ANON=1（ad-hoc）> IDENTITY 显式指定 > 工程 CODE_SIGN_IDENTITY
+  if [ "${ANON:-0}" = "1" ]; then
+    SIGN_ID="-"
+  elif [ -n "${IDENTITY:-}" ]; then
+    SIGN_ID="$IDENTITY"
+  else
+    SIGN_ID="$(xcodebuild -project "$PROJ" -scheme "$SCHEME" -configuration Release \
+        -showBuildSettings 2>/dev/null | awk -F' = ' '/CODE_SIGN_IDENTITY =/{print $2; exit}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+    SIGN_ID="${SIGN_ID:--}"
+  fi
   echo "==> 分包身份: ${SIGN_ID}，版本: ${VERSION}"
   mkdir -p "$DIST"
   STAGE_BASE="$(mktemp -d)"

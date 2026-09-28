@@ -164,13 +164,13 @@ final class AppModel: ObservableObject {
     /// 应用 UI 外观（**唯一全局权威入口**：启动、模式切换、系统主题变化时调用）。
     /// 只做**窗口级**显式赋值（window.appearance），**不设置 NSApp.appearance**：
     /// 一旦设置 NSApp.appearance，菜单栏图标（模板图）会按应用外观着色而非
-    /// 系统菜单栏——日间模式下图标变黑、与菜单栏背景不匹配。保持
+    /// 系统菜单栏——浅色模式下图标变黑、与菜单栏背景不匹配。保持
     /// NSApp.appearance = nil，图标永远跟随系统菜单栏（浅色栏黑图标、
     /// 深色栏白图标），与应用自身主题无关。
     /// 跟随系统时写**具体解析值**（读系统 AppleInterfaceStyle），绝不写 nil：
     /// macOS 上窗口被显式设过外观后置 nil 不总能可靠还原继承。
     /// **跳过菜单栏图标宿主窗口**（无边框、状态栏级）：它的外观必须保持
-    /// 跟随系统，一旦被写成应用模式，日间模式下图标就会被着成黑色。
+    /// 跟随系统，一旦被写成应用模式，浅色模式下图标就会被着成黑色。
     func applyUIMode() {
         #if DEBUG
         dumpWindowDiagnostics()

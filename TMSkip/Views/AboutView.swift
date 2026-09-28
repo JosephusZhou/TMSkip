@@ -6,7 +6,7 @@ struct AboutView: View {
 
     /// From build settings (MARKETING_VERSION), so releases stay in sync.
     private static var displayVersion: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.3.0"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.4.0"
     }
 
     private static let githubURL = URL(string: "https://github.com/JosephusZhou/TMSkip")!

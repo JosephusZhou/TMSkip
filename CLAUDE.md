@@ -46,6 +46,7 @@ xcodebuild -project TMSkip.xcodeproj -scheme TMSkip \
 - 个人证书身份（姓名/邮箱/Team ID）只允许写在 gitignore 的 `Local.xcconfig`（模板见 `Config/Local.xcconfig.example`），**任何入库文件与文档不得出现真实身份**，避免随仓库泄漏。配置后指定需求（DR）稳定：TCC 授权一次，重编译与 Debug/Release 通用；未配置则回退 ad-hoc，每次重编译都要求重新授权。
 - TCC 授权（完全磁盘访问等）绑定 DR 而非 cdhash；换证书/换 Team → DR 变 → 需重新授权一次，属预期。
 - 分发：`Scripts/make-release.sh` 自动检测 Developer ID 证书（付费计划）并签名+公证；无则按当前签名打包；`ANON=1` 强制 ad-hoc 匿名分发。详见 README「分发」。
+- GitHub Release：`Scripts/release-github.sh` 本机构建 universal → lipo 分包 arm64/x86_64 DMG → 自动绑定 `v<版本>` tag（缺失则创建并 push）→ GitHub API 创建/更新 Release 并上传（需 `GITHUB_TOKEN` repo 权限或 `gh` 登录）；无 `.github/workflows` 自动发布。分包重签身份可用 `ANON=1`（ad-hoc）或 `IDENTITY` 覆盖，透传 `make-dmg.sh`。
 - 对外分发的正式包应换 `Developer ID Application` 并公证；用户首次授权一次属预期。
 - 系统「App 管理」权限：向其他应用包内写属性会被系统拦截，TMSkip 直接跳过这类路径（见「应用包保护与权限分类」）。
 
