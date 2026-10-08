@@ -348,11 +348,26 @@ final class AppModel: ObservableObject {
 
     /// Background scan used by AutoScanCoordinator: reuses ScanEngine but
     /// discards progress callbacks and never touches the manual `scanPhase`.
+    ///
+    /// Runs at `.background` QoS with kernel-level I/O throttling: when the
+    /// user is actively doing disk-heavy work, the kernel forces this thread
+    /// to sleep so foreground apps keep their bandwidth; when the Mac is idle
+    /// the scan runs at full speed. The pre-count walk is also skipped to
+    /// halve total disk reads.
     func runBackgroundScan() async -> [ScanEngine.Hit] {
         let config = makeScanConfiguration()
         let engine = ScanEngine()
-        return await Task.detached(priority: .utility) {
-            engine.scan(config: config, progress: { _ in }, isCancelled: { Task.isCancelled })
+        return await Task.detached(priority: .background) {
+            // Ask the kernel to deprioritize our disk reads whenever the
+            // foreground process is also hitting the disk. Thread-scoped so
+            // the rest of the app (menu bar, FSEvents) stays unaffected.
+            setiopolicy_np(IOPOL_TYPE_DISK, IOPOL_SCOPE_THREAD, IOPOL_THROTTLE)
+            return engine.scan(
+                config: config,
+                progress: { _ in },
+                isCancelled: { Task.isCancelled },
+                skipPreCount: true
+            )
         }.value
     }
 

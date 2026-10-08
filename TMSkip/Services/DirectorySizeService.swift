@@ -71,6 +71,9 @@ actor DirectorySizeService {
     /// `nonisolated` so concurrent walks execute on the concurrent executor
     /// instead of serializing on (and blocking) the actor itself.
     private nonisolated static func walkDirectory(url: URL) async -> (Int64?, SizeComputeState) {
+        // Same kernel-level I/O throttling as the background scan: defer to
+        // foreground disk activity instead of competing with it.
+        setiopolicy_np(IOPOL_TYPE_DISK, IOPOL_SCOPE_THREAD, IOPOL_THROTTLE)
         var total: Int64 = 0
         let fm = FileManager.default
         guard let enumerator = fm.enumerator(

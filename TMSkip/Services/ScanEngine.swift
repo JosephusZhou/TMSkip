@@ -27,7 +27,8 @@ struct ScanEngine: Sendable {
     func scan(
         config: Configuration,
         progress: @escaping @Sendable (ScanProgress) -> Void,
-        isCancelled: @escaping @Sendable () -> Bool
+        isCancelled: @escaping @Sendable () -> Bool,
+        skipPreCount: Bool = false
     ) -> [Hit] {
         let skipExpanded = Set(config.skipPaths.map { ($0 as NSString).expandingTildeInPath })
         let enabledRules = config.rules.filter(\.isEnabled)
@@ -35,15 +36,22 @@ struct ScanEngine: Sendable {
         var walked = 0
         var found = 0
 
-        let counted = countDirectories(
-            roots: config.roots,
-            skip: skipExpanded,
-            rules: enabledRules,
-            cap: countCap,
-            timeout: countTimeout,
-            progress: progress,
-            isCancelled: isCancelled
-        )
+        // Automatic scans don't show a progress bar; skipping the pre-count walk
+        // halves the total disk reads (one traversal instead of two).
+        let counted: (value: Int, complete: Bool)
+        if skipPreCount {
+            counted = (0, false)
+        } else {
+            counted = countDirectories(
+                roots: config.roots,
+                skip: skipExpanded,
+                rules: enabledRules,
+                cap: countCap,
+                timeout: countTimeout,
+                progress: progress,
+                isCancelled: isCancelled
+            )
+        }
         if isCancelled() { return hits }
         // A trusted denominator requires the pre-count to have finished within
         // its budget — including the timeout case, where a partial count would
