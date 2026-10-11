@@ -116,7 +116,7 @@ GitHub Actions（运行器 macOS SDK 较老，打包出的 UI 与本机最新 SD
    `dist/TMSkip-<版本>-arm64.dmg` / `dist/TMSkip-<版本>-x86_64.dmg`
 2. 生成 `dist/SHA256SUMS.txt` 校验和，随 Release 一并上传
 3. 版本号默认读构建产物 Info.plist（也可作为参数传入，如
-   `./Scripts/release-github.sh 0.4.0`，DMG 内版本与 tag 对齐），
+   `./Scripts/release-github.sh 0.5.0`，DMG 内版本与 tag 对齐），
    Release 自动绑定 `v<版本>` tag：
    - 本地/远端没有该 tag 时，自动在当前 HEAD 创建并 push 到 origin；
    - tag 已存在则直接绑定，绝不移动已有 tag（仅远端存在时会先 fetch 到本地）
@@ -128,8 +128,8 @@ settings → Personal access tokens 生成）；或本机安装并登录 `gh` CL
 
 ```bash
 export GITHUB_TOKEN=ghp_xxx
-./Scripts/release-github.sh                 # 用工程当前版本（如 0.4.0）构建并发布
-./Scripts/release-github.sh 0.4.0           # 指定版本（构建 + 发布，绑定 v0.4.0）
+./Scripts/release-github.sh                 # 用工程当前版本（如 0.5.0）构建并发布
+./Scripts/release-github.sh 0.5.0           # 指定版本（构建 + 发布，绑定 v0.5.0）
 ./Scripts/release-github.sh --skip-build    # 复用 dist 已有 DMG，只做发布
 ./Scripts/release-github.sh --dry-run       # 构建打包，但不 push tag / 不调 API
 DRAFT=1 ./Scripts/release-github.sh         # 以草稿形式创建 Release，确认后再手动发布

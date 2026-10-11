@@ -52,7 +52,7 @@ for a in "$@"; do
     *) VERSION="$a" ;;
   esac
 done
-VERSION="${VERSION#v}"   # 容错：允许传 v0.4.0
+VERSION="${VERSION#v}"   # 容错：允许传 v0.5.0
 
 # ---------- 前置检查 ----------
 command -v curl >/dev/null 2>&1 || { echo "错误：缺少 curl" >&2; exit 1; }
