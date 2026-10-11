@@ -23,12 +23,12 @@ final class ScanEngineTests: XCTestCase {
         try content.write(to: url, atomically: true, encoding: .utf8)
     }
 
-    private func scan(skipPaths: [String] = []) -> [ScanEngine.Hit] {
+    private func scan(skipPaths: [String] = [], extraRules: [RuleDefinition] = []) -> [ScanEngine.Hit] {
         let engine = ScanEngine()
         let config = ScanEngine.Configuration(
             roots: [root.path],
             skipPaths: skipPaths,
-            rules: RulePackage.bundledSnapshot.rules
+            rules: RulePackage.bundledSnapshot.rules + extraRules
         )
         return engine.scan(config: config, progress: { _ in }, isCancelled: { false })
     }
@@ -140,5 +140,76 @@ final class ScanEngineTests: XCTestCase {
         XCTAssertTrue(ScanEngine.isTraversableDirectory(target.path))
         XCTAssertFalse(ScanEngine.isTraversableDirectory(link.path), "符号链接不得跟随（防环，PRD 6.5）")
         XCTAssertFalse(ScanEngine.isTraversableDirectory(root.appendingPathComponent("missing").path))
+    }
+
+    // MARK: - Custom user-defined rules
+
+    private func customRule(
+        id: String = "custom-test",
+        exclude: String,
+        ifExists sentinels: [String],
+        enabled: Bool = true
+    ) -> RuleDefinition {
+        RuleDefinition(
+            id: id,
+            name: "Test \(exclude)",
+            excludes: [exclude],
+            ifExists: sentinels,
+            group: "我的规则",
+            isEnabled: enabled
+        )
+    }
+
+    func testCustomRuleMatchesWithSentinel() throws {
+        try write("proj/my-sentinel.txt")
+        try write("proj/build-cache/output.bin")
+        // Same dir name elsewhere without the sentinel must NOT match.
+        try write("other/build-cache/output.bin")
+
+        let hits = scan(extraRules: [
+            customRule(exclude: "build-cache", ifExists: ["my-sentinel.txt"])
+        ])
+        XCTAssertEqual(hits.map(\.path), [root.appendingPathComponent("proj/build-cache").path])
+        XCTAssertEqual(hits.first?.ruleName, "Test build-cache")
+    }
+
+    func testCustomRuleWithoutSentinelMatchesAnywhere() throws {
+        // Decision #1: empty sentinels = unconditional, matches anywhere.
+        try write("alpha/build-cache/cache.dat")
+        try write("deeply/nested/beta/build-cache/cache.dat")
+
+        let hits = scan(extraRules: [
+            customRule(exclude: "build-cache", ifExists: [])
+        ])
+        XCTAssertEqual(Set(hits.map(\.path)), [
+            root.appendingPathComponent("alpha/build-cache").path,
+            root.appendingPathComponent("deeply/nested/beta/build-cache").path,
+        ])
+    }
+
+    func testDisabledCustomRuleIsSkipped() throws {
+        try write("proj/my-sentinel.txt")
+        try write("proj/build-cache/output.bin")
+
+        let hits = scan(extraRules: [
+            customRule(exclude: "build-cache", ifExists: ["my-sentinel.txt"], enabled: false)
+        ])
+        XCTAssertTrue(hits.isEmpty)
+    }
+
+    func testCustomRuleHitIsPruned() throws {
+        // Hit directories must not be descended into (same pruning as built-ins).
+        // The nested package.json+node_modules only gets reported if build-cache
+        // is NOT pruned (npm rule would fire inside it).
+        try write("proj/my-sentinel.txt")
+        try write("proj/build-cache/package.json")
+        try write("proj/build-cache/node_modules/index.js")
+
+        let hits = scan(extraRules: [
+            customRule(exclude: "build-cache", ifExists: ["my-sentinel.txt"])
+        ])
+        XCTAssertEqual(hits.map(\.path), [root.appendingPathComponent("proj/build-cache").path])
+        XCTAssertFalse(hits.contains { $0.path.hasSuffix("node_modules") },
+                       "命中目录被剪枝后，其内部内容不得再按内置规则命中")
     }
 }

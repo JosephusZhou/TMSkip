@@ -93,4 +93,39 @@ final class SettingsDecodingTests: XCTestCase {
         XCTAssertEqual(decoded.lastAutoScanAt, Date(timeIntervalSince1970: 1_700_000_000))
         XCTAssertEqual(decoded.uiMode, .dark)
     }
+
+    func testMissingCustomRulesDefaultsToEmpty() throws {
+        // Old configs written before customRules existed must decode cleanly.
+        let oldJSON = """
+        {
+          "autoScanEnabled": false
+        }
+        """.data(using: .utf8)!
+
+        let settings = try decoder.decode(AppSettings.self, from: oldJSON)
+        XCTAssertTrue(settings.customRules.isEmpty)
+        XCTAssertFalse(settings.autoScanEnabled)
+    }
+
+    func testRoundTripPreservesCustomRules() throws {
+        var settings = AppSettings()
+        settings.customRules = [
+            RuleDefinition(
+                id: "custom-abc",
+                name: "My build cache",
+                excludes: ["build-cache"],
+                ifExists: ["my-sentinel.txt"],
+                group: "我的规则",
+                isEnabled: false
+            )
+        ]
+
+        let data = try encoder.encode(settings)
+        let decoded = try decoder.decode(AppSettings.self, from: data)
+
+        XCTAssertEqual(decoded.customRules, settings.customRules)
+        XCTAssertEqual(decoded.customRules.first?.excludes, ["build-cache"])
+        XCTAssertEqual(decoded.customRules.first?.ifExists, ["my-sentinel.txt"])
+        XCTAssertFalse(decoded.customRules.first?.isEnabled ?? true)
+    }
 }

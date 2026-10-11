@@ -6,6 +6,9 @@ struct ScanSettingsView: View {
     @State private var newSkip = ""
     /// PRD §6.4.2: choosing autoApply requires an explicit risk confirmation.
     @State private var showAutoApplyConfirm = false
+    @State private var newCustomDir = ""
+    @State private var newCustomSentinel = ""
+    @State private var newCustomName = ""
 
     var body: some View {
         ScrollView {
@@ -193,6 +196,80 @@ struct ScanSettingsView: View {
                     .scrollIndicators(.visible)
 
                     toggleRow("不自动恢复备份（no re-include）", subtitle: "规则不再匹配时，不自动取消排除", isOn: noReincludeBinding)
+                }
+
+                card("我的规则") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("自定义规则叠加在 Asimov 规则之上，仅保存在本机，不会随规则更新被覆盖。哨兵留空时，该目录名在主目录下任何位置出现都会被列为待排除。")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        if app.settings.customRules.isEmpty {
+                            Text("尚未创建自定义规则。")
+                                .font(.callout)
+                                .foregroundStyle(.secondary)
+                                .padding(.vertical, 4)
+                        } else {
+                            ScrollView {
+                                LazyVStack(spacing: 6) {
+                                    ForEach(app.settings.customRules) { rule in
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 1) {
+                                                Text(rule.name).font(.system(size: 14))
+                                                Text("excludes: \(rule.excludes.joined(separator: ", ")) · if: \(rule.ifExists.isEmpty ? "任意位置" : rule.ifExists.joined(separator: ", "))")
+                                                    .font(.footnote)
+                                                    .foregroundStyle(.secondary)
+                                            }
+                                            Spacer()
+                                            Checkbox(isOn: rule.isEnabled) { enabled in
+                                                app.setCustomRuleEnabled(id: rule.id, enabled: enabled)
+                                            }
+                                            Button {
+                                                app.removeCustomRule(id: rule.id)
+                                            } label: {
+                                                Image(systemName: "trash")
+                                                    .font(.caption)
+                                                    .foregroundStyle(.secondary)
+                                            }
+                                            .buttonStyle(.plain)
+                                            .help("删除此规则（已排除的历史记录保留）")
+                                        }
+                                        .padding(8)
+                                        .background(Color.primary.opacity(0.03), in: RoundedRectangle(cornerRadius: 8))
+                                    }
+                                }
+                            }
+                            .frame(maxHeight: 220)
+                            .scrollIndicators(.visible)
+                        }
+
+                        Divider().padding(.vertical, 2)
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            TextField("要排除的目录名（必填），如 build-cache", text: $newCustomDir)
+                                .textFieldStyle(.roundedBorder)
+                            TextField("触发哨兵（可空，多个用逗号分隔），如 package.json 或 *.lock", text: $newCustomSentinel)
+                                .textFieldStyle(.roundedBorder)
+                            TextField("名称（可空，自动生成）", text: $newCustomName)
+                                .textFieldStyle(.roundedBorder)
+                            HStack {
+                                Spacer()
+                                Button("添加规则") {
+                                    if app.addCustomRule(
+                                        name: newCustomName,
+                                        excludeDir: newCustomDir,
+                                        sentinelText: newCustomSentinel
+                                    ) {
+                                        newCustomDir = ""
+                                        newCustomSentinel = ""
+                                        newCustomName = ""
+                                    }
+                                }
+                                .buttonStyle(.prominent)
+                            }
+                        }
+                    }
                 }
             }
             .padding(20)

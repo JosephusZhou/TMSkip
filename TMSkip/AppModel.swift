@@ -342,7 +342,7 @@ final class AppModel: ObservableObject {
         ScanEngine.Configuration(
             roots: settings.roots.map(\.path),
             skipPaths: settings.skipPaths,
-            rules: activeRulePackage.rules
+            rules: activeRulePackage.rules + settings.customRules
         )
     }
 
@@ -949,6 +949,86 @@ final class AppModel: ObservableObject {
         settingsStore.update { settings in
             if let idx = settings.rulePackage.rules.firstIndex(where: { $0.id == id }) {
                 settings.rulePackage.rules[idx].isEnabled = enabled
+            }
+        }
+    }
+
+    // MARK: - Custom rules (user-defined pattern rules)
+
+    /// Split a free-form sentinel field into glob patterns. Separated ONLY by
+    /// Chinese/ASCII commas — whitespace is kept inside a token because real
+    /// filenames may contain spaces (e.g. "My Project.workspace"). Empty
+    /// result = unconditional rule: the target directory name matches anywhere.
+    nonisolated static func splitSentinelText(_ text: String) -> [String] {
+        text
+            .components(separatedBy: CharacterSet(charactersIn: ",，"))
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+    }
+
+    /// Validate a typed exclude directory name. Returns a localized error
+    /// message when invalid, nil when OK. Kept as a nonisolated pure function
+    /// so it is unit-testable without constructing AppModel.
+    nonisolated static func validateCustomExcludeDir(_ raw: String) -> String? {
+        let dir = raw.trimmingCharacters(in: .whitespaces)
+        guard !dir.isEmpty else { return "请填写要排除的目录名" }
+        guard !dir.contains("/") else {
+            return "目录名不能包含路径分隔符：只填单级目录名，如 build-cache"
+        }
+        guard dir != ".", dir != ".." else { return "不能用 . 或 .. 作为目录名" }
+        return nil
+    }
+
+    /// Add a user-defined rule. Flashes and returns false on invalid input.
+    /// Decision #1: empty sentinels → unconditional (any location).
+    /// Decision #2: one rule binds exactly one directory name.
+    @discardableResult
+    func addCustomRule(name rawName: String?, excludeDir rawDir: String, sentinelText rawSentinels: String) -> Bool {
+        if let error = Self.validateCustomExcludeDir(rawDir) {
+            flash(error)
+            return false
+        }
+        let dir = rawDir.trimmingCharacters(in: .whitespaces)
+        let sentinels = Self.splitSentinelText(rawSentinels)
+
+        // Dedup: same single exclude dir + same sentinel set (order-insensitive).
+        let duplicate = settings.customRules.contains {
+            $0.excludes == [dir] && Set($0.ifExists) == Set(sentinels)
+        }
+        guard !duplicate else { flash("相同的自定义规则已存在"); return false }
+
+        let displayName: String
+        if let n = rawName?.trimmingCharacters(in: .whitespaces), !n.isEmpty {
+            displayName = n
+        } else if sentinels.isEmpty {
+            displayName = dir
+        } else {
+            displayName = "\(dir) ← \(sentinels.joined(separator: ", "))"
+        }
+
+        let rule = RuleDefinition(
+            id: "custom-\(UUID().uuidString)",
+            name: displayName,
+            excludes: [dir],
+            ifExists: sentinels,
+            group: "我的规则",
+            isEnabled: true
+        )
+        settingsStore.update { $0.customRules.append(rule) }
+        flash("已添加自定义规则：\(displayName)")
+        return true
+    }
+
+    /// Decision #3: deleting a rule keeps historical IgnoreRecords in place;
+    /// the user can still unignore them from the ignore list manually.
+    func removeCustomRule(id: String) {
+        settingsStore.update { $0.customRules.removeAll { $0.id == id } }
+    }
+
+    func setCustomRuleEnabled(id: String, enabled: Bool) {
+        settingsStore.update { settings in
+            if let idx = settings.customRules.firstIndex(where: { $0.id == id }) {
+                settings.customRules[idx].isEnabled = enabled
             }
         }
     }

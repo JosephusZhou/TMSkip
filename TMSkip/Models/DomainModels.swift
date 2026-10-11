@@ -351,6 +351,10 @@ struct AppSettings: Codable, Equatable {
     var autoRuleSync: Bool = true
     /// UI 外观模式（浅色 / 深色 / 跟随系统）。
     var uiMode: UIMode = .system
+    /// User-defined pattern rules, layered on top of the Asimov rule package.
+    /// Stored separately so remote package sync / restore-bundled never wipes
+    /// them. Empty by default; old configs decode cleanly (missing key → []).
+    var customRules: [RuleDefinition] = []
 
     /// Explicit coding keys so the custom decoder below can evolve independently
     /// of the synthesized memberwise initializer; new fields simply get a key here.
@@ -373,6 +377,7 @@ struct AppSettings: Codable, Equatable {
         case lastAutoScanAt
         case autoRuleSync
         case uiMode
+        case customRules
     }
 
     static let defaultSkipPaths = [
@@ -445,6 +450,7 @@ extension AppSettings {
         lastAutoScanAt = try? c.decodeIfPresent(Date.self, forKey: .lastAutoScanAt) ?? nil
         autoRuleSync = fallback(.autoRuleSync, true)
         uiMode = fallback(.uiMode, UIMode.system)
+        customRules = fallback(.customRules, [])
     }
 }
 

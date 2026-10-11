@@ -52,4 +52,30 @@ final class SettingsTests: XCTestCase {
         let fresh = incoming.mergingEnabledStates(from: nil)
         XCTAssertEqual(fresh, incoming, "无历史时应原样保留")
     }
+
+    // MARK: - Custom rule input validation
+
+    func testSplitSentinelText() {
+        XCTAssertEqual(AppModel.splitSentinelText("package.json"), ["package.json"])
+        XCTAssertEqual(AppModel.splitSentinelText("a, b，c"), ["a", "b", "c"],
+                       "支持中英文逗号分隔，token 首尾空白 trim")
+        XCTAssertEqual(AppModel.splitSentinelText(""), [], "空 = 无条件规则")
+        XCTAssertEqual(AppModel.splitSentinelText("   "), [])
+        XCTAssertEqual(AppModel.splitSentinelText("*.lock, *.tmp"), ["*.lock", "*.tmp"])
+        // Whitespace is NOT a separator: filenames may contain spaces.
+        XCTAssertEqual(AppModel.splitSentinelText("My Project.workspace"), ["My Project.workspace"])
+        XCTAssertEqual(AppModel.splitSentinelText("a, b c"), ["a", "b c"],
+                       "逗号内 token 的内部空格必须保留")
+    }
+
+    func testValidateCustomExcludeDir() {
+        XCTAssertNil(AppModel.validateCustomExcludeDir("build-cache"))
+        XCTAssertNil(AppModel.validateCustomExcludeDir("  .venv  "), "首尾空白可接受（trim 后合法）")
+        XCTAssertNotNil(AppModel.validateCustomExcludeDir(""), "空目录名拒绝")
+        XCTAssertNotNil(AppModel.validateCustomExcludeDir("   "))
+        XCTAssertNotNil(AppModel.validateCustomExcludeDir("some/dir"), "拒绝路径分隔符")
+        XCTAssertNotNil(AppModel.validateCustomExcludeDir("./relative"))
+        XCTAssertNotNil(AppModel.validateCustomExcludeDir("."))
+        XCTAssertNotNil(AppModel.validateCustomExcludeDir(".."))
+    }
 }
