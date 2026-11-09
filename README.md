@@ -174,7 +174,7 @@ TMSkip/
 │   ├── Models/                  # 领域模型 + 内置规则包（RulePackage+Bundled.swift）
 │   ├── Services/                # 扫描、自动扫描(FSEvents/定时)、排除、体积、FDA、设置、通知、登录项、忽略存储、窗口路由、扫描日志
 │   ├── Views/                   # 手动扫描 / 忽略列表 / 配置 / 关于 / Onboarding / 菜单栏 / 共享组件
-│   ├── Resources/               # 资产（AppIcon 等）
+│   ├── Resources/               # 运行时资产：AppIcon.icon、Assets.xcassets（AppIcon 旧格式兜底、MenuBarIcon）
 │   └── TMSkip.entitlements      # 沙箱关闭（需完全磁盘访问）
 ├── Config/
 │   ├── Signing.xcconfig         # 入库默认签名（ad-hoc）+ 末尾 include Local
@@ -183,10 +183,18 @@ TMSkip/
 │   ├── make-release.sh          # 打包发布（自动检测 Developer ID 并公证）
 │   ├── make-dmg.sh              # universal 构建 + 按架构 lipo 分包 DMG（脚本复用）
 │   ├── release-github.sh        # 本地构建 DMG + 绑定 tag + GitHub API 发布 Release
-│   ├── dev-run.sh               # 开发循环：构建 + 重启
-│   └── make_app_icon.swift      # 生成 AppIcon 图标的辅助脚本
+│   └── dev-run.sh               # 开发循环：构建 + 重启
+├── design/icons/                # 图标设计源文件（SVG/PNG）存档：仅参考，不参与构建，代码/配置不得引用
 └── TMSkipTests/                 # 单元测试（7 个测试类）
 ```
+
+### 图标资源
+
+- `Resources/AppIcon.icon`：macOS 26 Icon Composer 图标（默认外观）；需 Xcode 26 构建，构建时自动生成 `AppIcon.icns` 与 macOS 13–15 回退图。未提供的 dark / clear / tinted 变体由系统自动生成，无需额外资源。
+- `Resources/Assets.xcassets/AppIcon.appiconset`：旧格式图标兜底（非 Xcode 26 工具链使用），不作为 macOS 26 的图标来源。
+- `Resources/Assets.xcassets/MenuBarIcon.imageset`：菜单栏模板图，18×18 pt（36×36 px @2x），由系统按菜单栏明暗自动着色；HIG 未规定固定像素尺寸。
+- `design/icons/`：设计源文件归档，仅供人工参考；不得被代码或构建配置直接引用，也不要在此目录改运行时资源。
+- macOS 图标资产最大规格为 1024×1024 px（512 pt @2x）；`AppIcon.icon` 内的 1024 PNG 图层已足够，无需额外提供 2048 资源。若在意超大尺寸清晰度，可将图层换成 SVG（矢量自动缩放）。
 
 ## 已拍板决策
 

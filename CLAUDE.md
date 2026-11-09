@@ -105,6 +105,7 @@ AppModel (@MainActor, ObservableObject)  ← 唯一业务编排中心
 - 关闭主窗口 ≠ 退出；AppDelegate 在无可见主窗口时切 `.accessory`（Dock 图标消失），菜单栏「打开主窗口」/Dock 点击经 `WindowRouter` 切回 `.regular` 并重建窗口（PRD 运行形态）
 - 按钮样式：`.prominent` / `.secondary` / `.destructive` 为自定义 ButtonStyle（`RootView.swift`），解决窗口失焦时系统按钮被淡化不可见的问题；并排按钮高度一致
 - 忽略列表表头全选勾选框用 AppKit 桥接（`TableHeaderCheckboxInstaller`）嵌入 NSTableHeaderView
+- 图标资产：`Resources/AppIcon.icon` 为 macOS 26 Icon Composer 图标（需 Xcode 26，构建时自动生成旧系统回退图）；`Assets.xcassets/AppIcon.appiconset` 仅旧格式兜底；`MenuBarIcon.imageset` 为 18×18 pt 模板图，系统自动明暗着色；`design/icons` 是设计源归档，**不要修改、不得被代码/配置引用**
 
 ## 已拍板决策（勿擅自改产品语义）
 

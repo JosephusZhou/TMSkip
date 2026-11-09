@@ -5,9 +5,15 @@ struct MenuBarLabelView: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            Image(systemName: app.scanPhase == .running || app.isAutoScanning
-                  ? "arrow.triangle.2.circlepath"
-                  : "externaldrive.badge.timemachine")
+            if app.scanPhase == .running || app.isAutoScanning {
+                Image(systemName: "arrow.triangle.2.circlepath")
+            } else {
+                // 模板图由系统按菜单栏实际明暗自动着色（浅色黑、深色白），
+                // 无需额外准备 dark 变体；资源来自 design/icons。
+                Image("MenuBarIcon")
+                    .renderingMode(.template)
+                    .accessibilityLabel("TMSkip")
+            }
             if app.pendingReview {
                 Circle()
                     .fill(Color.orange)
